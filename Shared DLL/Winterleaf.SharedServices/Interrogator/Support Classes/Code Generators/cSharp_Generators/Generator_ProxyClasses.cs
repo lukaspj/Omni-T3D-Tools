@@ -1054,6 +1054,228 @@ namespace " + _mcSharpNamespace + "." + Interrogator.constants.namespaces.userOb
             return Code.ToString();
         }
 
+        public string tsc_GenerateWork_Creator(String classname)
+        {
+            mLogger.SubSectionStart("Generating CSharp class code");
+            mLogger.NewEvent("", "Generating CSharp Class Creator object for T3D class '" + classname + "'.");
+
+            List<string[]> fields = new List<string[]>();
+            List<string[]> parentFields = new List<string[]>();
+            foreach (InitPersistData ipd in mCP.Data_InitPersists)
+            {
+                string currentClassName = classname;
+                bool parent = false;
+                if (ipd.MClassName != currentClassName)
+                {
+                    currentClassName = MDntcConfig.ObjectParent[currentClassName];
+                    while (currentClassName != "")
+                    {
+                        if (ipd.MClassName == currentClassName)
+                        {
+                            parent = true;
+                            break;
+                        }
+                        currentClassName = MDntcConfig.ObjectParent[currentClassName];
+                    }
+                    if (!parent)
+                        continue;
+                }
+
+                if (currentClassName.ToLower() == "posteffect" && ipd.MName.Trim() == "isEnabled")
+                    Console.WriteLine("");
+
+                if (ipd.MElementCount.Trim() != "")
+                {
+                    if (!ipd.MElementCount.IsNumeric())
+                    {
+                        bool set = false;
+                        foreach (DefinedValues dv in mCP.Data_Defined)
+                        {
+                            if (dv._name.ToLower() == ipd.MElementCount.ToLower())
+                            {
+                                ipd.MElementCount = dv._value;
+                                set = true;
+                            }
+                        }
+
+                        if (ipd.MElementCount == "PDC_NUM_KEYS")
+                            Console.WriteLine("");
+
+                        if (!ipd.MElementCount.IsNumeric())
+                        {
+                            List<string> classparents = new List<string>();
+
+                            string mclass = currentClassName;
+
+                            while (mclass != "")
+                            {
+                                classparents.Add(mclass);
+                                if (MDntcConfig.ObjectParent.ContainsKey(mclass))
+                                    mclass = MDntcConfig.ObjectParent[mclass];
+                                else
+                                    mclass = "";
+                            }
+
+                            foreach (EnumData ed in mCP.Data_Enumerations.Values)
+                            {
+                                if (!classparents.Contains(ed.mClass))
+                                    continue;
+
+                                //if (ed.mClass != classname)
+                                //    continue;
+                                if (ed.mBody.Contains(" " + ipd.MElementCount + " "))
+                                {
+                                    string nocomments = Helpers.removeComments(ed.mBody);
+                                    string tv = "";
+                                    for (
+                                        int i = ipd.MElementCount.Length +
+                                                nocomments.IndexOf(ipd.MElementCount, StringComparison.Ordinal);
+                                        i < nocomments.Length;
+                                        i++)
+                                    {
+                                        if (nocomments[i] != ',' && nocomments[i] != '}' && nocomments[i] != ' ' &&
+                                            nocomments[i] != '=')
+                                            tv += nocomments[i];
+                                        else if (nocomments[i] == ',' || nocomments[i] == '}')
+                                            break;
+                                    }
+                                    if (tv.Trim() != "")
+                                    {
+                                        tv = tv.Trim();
+                                        set = true;
+                                        if (!tv.IsNumeric())
+                                            tv = FindEnumValue(currentClassName, tv);
+
+                                        ipd.MElementCount = tv.Trim();
+                                        break;
+                                    }
+                                }
+                            }
+                            if (!set)
+                                throw new Exception("OPPS COULDNOT RESOLVE ARRAY SIZE PARAM (" + ipd.MElementCount + ")");
+                        }
+                    }
+                }
+                else
+                    ipd.MElementCount = "1";
+
+                string safename = ipd.MName.Trim();
+
+                safename = Helpers.GiveMeSafeName(safename);
+
+                foreach (ImplementCallback ic in
+                    mCP.Data_ImplementCallback.Where(ic => ic.mClassname.ToLower() == classname.ToLower()))
+                {
+                    if (safename != ic.mFunction)
+                        continue;
+                    safename += "x";
+                    break;
+                }
+
+                bool isScript = false;
+                if (parent)
+                    parentFields.Add(new[]
+                    {
+                        safename, ipd.mCSharpType, ipd.MElementCount, ipd.MName,
+                        ipd.MComment.Replace("<", "").Replace(">", "").Replace("&", "and")
+                    });
+                else
+                {
+                    fields.Add(new[]
+                    {
+                        safename, ipd.mCSharpType, ipd.MElementCount, ipd.MName,
+                        ipd.MComment.Replace("<", "").Replace(">", "").Replace("&", "and")
+                    });
+                }
+            }
+
+            string InstanceClassName = Interrogator.constants.general.classPrefix + classname + "Instance";
+            string ReturnClassName = Interrogator.constants.general.classPrefix + classname;
+            string parentName; 
+            if (classname.ToLower().Trim() == "simobject")
+                parentName = "ObjectInstance";
+            else
+                parentName = Interrogator.constants.general.classPrefix + MDntcConfig.ObjectParent[classname] + "Instance";
+
+            string FieldSetters = "";
+
+            foreach (string[] strings in fields)
+            {
+                if (strings[2] == "1")
+                {
+                    FieldSetters += @"
+
+      public " + strings[1] + " " + strings[0] + @"
+      {
+         set { Fields[""" + strings[3] + @"""] = value.ToString(); }
+      }";
+                }
+                else
+                {
+                    FieldSetters += @"
+
+      private FieldWrapper<" + strings[1] + "> _" + strings[0] + @" = new FieldWrapper<" + strings[1] + @">();
+      public FieldWrapper<" + strings[1] + "> " + strings[0] + @"
+      {
+         get { _" + strings[0] + @".Set(ref mFieldsDictionary, """ + strings[3] + @"""); return _" + strings[0] + @"; }
+         set { _" + strings[0] + @".Set(ref mFieldsDictionary, """ + strings[3] + @"""); }
+      }";
+                }
+            }
+
+            StringBuilder Code = new StringBuilder();
+            Code.Append(@"using System;
+using WinterLeaf.Demo.Full.Models.User.Extendable;
+using WinterLeaf.Engine;
+using WinterLeaf.Engine.Classes.View.Creators;
+using WinterLeaf.Engine.Containers;
+using WinterLeaf.Engine.Enums;
+
+namespace WinterLeaf.Demo.Full.Models.Base.Creators
+{
+   /// <summary>
+   /// 
+   /// </summary>
+   public class " + InstanceClassName + " : " + parentName + "\r\n   {\r\n");
+
+            Code.Append(@"      public " + InstanceClassName + @"(string _name = """", string _className = """ + ReturnClassName + @""", ObjectType pObjectType = ObjectType.Instance)
+         : base(_name, _className, pObjectType)
+      {
+      }
+");
+            Code.Append(FieldSetters);
+
+            Code.Append(@"
+
+      /// <summary>
+      /// 
+      /// </summary>
+      /// <param name=""inst""></param>
+      /// <returns></returns>
+      public static implicit operator " + ReturnClassName + @"(" + InstanceClassName + @" inst)
+      {
+         UInt32 r;
+         string id = Omni.self.Evaluate(""return "" + inst.ToString(), true);
+         if(!UInt32.TryParse(id, out r))
+            return null;
+         " + ReturnClassName + @" ret = new " + ReturnClassName + @"();
+         ret.SetUpObject(r);
+         return ret;
+      }
+
+      /// <summary>
+      /// 
+      /// </summary>
+      /// <param name=""inst""></param>
+      /// <returns></returns>
+      public static implicit operator string(" + InstanceClassName + @" inst)
+      {
+         return Omni.self.Evaluate(""return "" + inst.ToString(), true);
+      }
+");
+            return Code.Append("   }\r\n}").ToString();
+        }
+
         public void Start()
         {
             mLogger.SectionStart("T3D CSharp Objects");
@@ -1061,12 +1283,16 @@ namespace " + _mcSharpNamespace + "." + Interrogator.constants.namespaces.userOb
             double pos = 0;
 
             ProjectItem piProxyObjectsBase = null;
+            ProjectItem piProxyObjectsCreator = null;
             ProjectItem piuserObjectsProxyObjects = null;
 
             if (Interrogator.self.mCSProject_GameLogic != null)
                 {
                 if (!Interrogator.self.findProjectItem(Interrogator.self.mCSProject_GameLogic.ProjectItems, Interrogator.constants.fileLocations.ProxyObjects_Base, out piProxyObjectsBase))
                     throw new Exception("Unable to find ProxyObject_Base sub-folder.");
+
+                if (!Interrogator.self.findProjectItem(Interrogator.self.mCSProject_GameLogic.ProjectItems, Interrogator.constants.fileLocations.ProxyObjects_Creator, out piProxyObjectsCreator))
+                    throw new Exception("Unable to find ProxyObjects_Creator sub-folder.");
 
                 if (!Interrogator.self.findProjectItem(Interrogator.self.mCSProject_GameLogic.ProjectItems, Interrogator.constants.fileLocations.userObjects_ProxyObjects, out piuserObjectsProxyObjects))
                     throw new Exception("Unable to find \\userObjects\\ProxyObjects\\ sub-folder.");
@@ -1129,6 +1355,33 @@ namespace " + _mcSharpNamespace + "." + Interrogator.constants.namespaces.userOb
                         using (StreamWriter file = new StreamWriter(filename, false))
                             file.WriteLine(code);
                         piuserObjectsProxyObjects.ProjectItems.AddFromFile(filename);
+                        }
+                    catch (Exception err)
+                        {
+                        throw err;
+                        }
+                    }
+                code = tsc_GenerateWork_Creator(tsclass);
+                if (piProxyObjectsCreator == null)
+                    {
+                    try
+                        {
+                        using (StreamWriter file = new StreamWriter(_mcSharpUserLocation + Interrogator.constants.fileLocations.ProxyObjects_Creator + Interrogator.constants.general.classPrefix + tsclass + "Instance.cs", false))
+                            file.WriteLine(code);
+                        }
+                    catch (Exception)
+                        {
+                            throw new Exception("Cannot write to " + _mcSharpUserLocation + Interrogator.constants.fileLocations.ProxyObjects_Creator + Interrogator.constants.general.classPrefix + tsclass + "Instance.cs.  Is it readonly?");
+                        }
+                    }
+                else
+                    {
+                    try
+                        {
+                        string filename = piProxyObjectsCreator.Properties.Item("FullPath").Value.ToString() + Interrogator.constants.general.classPrefix + tsclass + "Instance.cs";
+                        using (StreamWriter file = new StreamWriter(filename, false))
+                            file.WriteLine(code);
+                        piProxyObjectsCreator.ProjectItems.AddFromFile(filename);
                         }
                     catch (Exception err)
                         {

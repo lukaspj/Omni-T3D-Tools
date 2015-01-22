@@ -2,6 +2,7 @@
 using System.IO;
 using System.Windows.Forms;
 using EnvDTE;
+using EnvDTE80;
 using Winterleaf.SharedServices.Interrogator.Configuration;
 using Winterleaf.SharedServices.Interrogator.cSharp_Generators;
 using Winterleaf.SharedServices.Interrogator.Parsing;
@@ -139,29 +140,67 @@ namespace Winterleaf.SharedServices.Interrogator
                         ProjectItem pi = null;
                         if (findProjectItem(mCSProject_GameLogic.ProjectItems, constants.fileLocations.ProxyObjects_Base, out pi))
                             {
-                            mLogger.onProgressSubChange(1, "Deleteing old proxy base files.");
+                            mLogger.onProgressSubChange(1, "Deleting old proxy base files.");
                             int totalItems = pi.ProjectItems.Count;
                             int counter = 1;
-                            while (pi.ProjectItems.Count > 0)
-                                {
-                                mLogger.onProgressChange(((float) counter)/((float) totalItems), "Removing file (\"" + pi.ProjectItems.Item(1).Name + "\")");
-                                pi.ProjectItems.Item(1).Delete();
-                                counter++;
-                                }
-                            }
-
-                        if (findProjectItem(mCSProject_GameLogic.ProjectItems, constants.fileLocations.userObjects_ProxyObjects, out pi))
+                            int folders = 0;
+                            while (pi.ProjectItems.Count - folders > 0)
                             {
-                            mLogger.onProgressSubChange(1, "Deleteing old user proxy files.");
-                            int totalItems = pi.ProjectItems.Count;
-                            int counter = 1;
-                            while (pi.ProjectItems.Count > 0)
-                                {
-                                mLogger.onProgressChange(((float) counter)/((float) totalItems), "Removing file (\"" + pi.ProjectItems.Item(1).Name + "\")");
-                                pi.ProjectItems.Item(1).Delete();
-                                counter++;
+                                if (pi.ProjectItems.Item(1 + folders).Kind != "{6BB5F8EF-4483-11D3-8BCF-00C04F8EC28C}") // VS Physical folder: https://msdn.microsoft.com/en-us/library/bb166496.aspx
+                                    {
+                                    mLogger.onProgressChange(((float) counter)/((float) totalItems),
+                                        "Removing file (\"" + pi.ProjectItems.Item(1 + folders).Name + "\")");
+                                    pi.ProjectItems.Item(1 + folders).Delete();
+                                    counter++;
+                                    }
+                                else
+                                    {
+                                    folders++;
+                                    }
                                 }
                             }
+                        if (findProjectItem(mCSProject_GameLogic.ProjectItems, constants.fileLocations.userObjects_ProxyObjects, out pi))
+                        {
+                            mLogger.onProgressSubChange(1, "Deleting old proxy base files.");
+                            int totalItems = pi.ProjectItems.Count;
+                            int counter = 1;
+                            int folders = 0;
+                            while (pi.ProjectItems.Count - folders > 0)
+                            {
+                                if (pi.ProjectItems.Item(1 + folders).Kind != "{6BB5F8EF-4483-11D3-8BCF-00C04F8EC28C}") // VS Physical folder: https://msdn.microsoft.com/en-us/library/bb166496.aspx
+                                {
+                                    mLogger.onProgressChange(((float)counter) / ((float)totalItems),
+                                        "Removing file (\"" + pi.ProjectItems.Item(1 + folders).Name + "\")");
+                                    pi.ProjectItems.Item(1 + folders).Delete();
+                                    counter++;
+                                }
+                                else
+                                {
+                                    folders++;
+                                }
+                            }
+                        }
+                        if (findProjectItem(mCSProject_GameLogic.ProjectItems, constants.fileLocations.ProxyObjects_Creator, out pi))
+                        {
+                            mLogger.onProgressSubChange(1, "Deleting old proxy base files.");
+                            int totalItems = pi.ProjectItems.Count;
+                            int counter = 1;
+                            int folders = 0;
+                            while (pi.ProjectItems.Count - folders > 0)
+                            {
+                                if (pi.ProjectItems.Item(1 + folders).Kind != "{6BB5F8EF-4483-11D3-8BCF-00C04F8EC28C}") // VS Physical folder: https://msdn.microsoft.com/en-us/library/bb166496.aspx
+                                {
+                                    mLogger.onProgressChange(((float)counter) / ((float)totalItems),
+                                        "Removing file (\"" + pi.ProjectItems.Item(1 + folders).Name + "\")");
+                                    pi.ProjectItems.Item(1 + folders).Delete();
+                                    counter++;
+                                }
+                                else
+                                {
+                                    folders++;
+                                }
+                            }
+                        }
                         }
                     catch (Exception er)
                         {
@@ -229,7 +268,7 @@ namespace Winterleaf.SharedServices.Interrogator
 
                 _mGenerator_pInvokes = new Generator_pInvokes(_mCSharpProjectFile, ref _mlogger, ref _mCodeParsing, ref _mConfigFiles);
                 _mGenerator_pInvokes.Start();
-
+                
                 mLogger.onProgressChange(.90, "Generating C# (Model Classes)....");
                 _mGenerator_ProxyClasses = new Generator_ProxyClasses(_mCSharpProjectFile, ref _mlogger, ref _mConfigFiles, ref _mCodeParsing, _mUsercSharp, _mUserNamespace);
                 _mGenerator_ProxyClasses.Start();
@@ -286,6 +325,7 @@ namespace Winterleaf.SharedServices.Interrogator
             {
                 public static string ProxyObjects_Base = "\\Models.Base\\";
                 public static string userObjects_ProxyObjects = "\\Models.User\\Extendable\\";
+                public static string ProxyObjects_Creator = "\\Models.Base\\Creators\\";
             }
 
             internal static class general
@@ -297,6 +337,7 @@ namespace Winterleaf.SharedServices.Interrogator
             {
                 public static string ProxyObjects_Base = "Models.Base";
                 public static string userObjects_ProxyObjects = "Models.User.Extendable";
+                public static string ProxyObjects_Creator = "Models.Base.Creators";
             }
 
         }
