@@ -169,11 +169,11 @@ namespace WinterLeaf.Engine.Classes.Interopt
                 set { m_ts.SetVar(key, value); }
                 }
             }
-        private readonly muglobals _muglobals = new muglobals();
+        private static readonly muglobals _muglobals = new muglobals();
         /// &lt;summary&gt;
         /// used to set/get bool globals
         /// &lt;/summary&gt;
-        public muglobals uGlobal
+        public static muglobals uGlobal
             {
             get { return _muglobals; }
             }
@@ -199,12 +199,12 @@ namespace WinterLeaf.Engine.Classes.Interopt
             return base.ToString();
             }
 
-        readonly mglobalsIsDefined _mglobalsIsDefined = new mglobalsIsDefined();
+        private readonly static mglobalsIsDefined _mglobalsIsDefined = new mglobalsIsDefined();
 
         /// &lt;summary&gt;
         /// Used to grab string globals
         /// &lt;/summary&gt;
-        public mglobalsIsDefined isGlobal
+        public static mglobalsIsDefined isGlobal
             {
             get { return _mglobalsIsDefined; }
             }
@@ -224,11 +224,11 @@ namespace WinterLeaf.Engine.Classes.Interopt
                 set { m_ts.SetVar(key, value); }
                 }
             }
-        public readonly msglobals _msglobals = new msglobals();
+        private static readonly msglobals _msglobals = new msglobals();
         /// &lt;summary&gt;
         /// Used to grab string globals
         /// &lt;/summary&gt;
-        public msglobals sGlobal
+        public static msglobals sGlobal
             {
             get { return _msglobals; }
             }
@@ -250,11 +250,11 @@ namespace WinterLeaf.Engine.Classes.Interopt
                 }
             }
 
-        private readonly miglobals _miglobals = new miglobals();
+        private static readonly miglobals _miglobals = new miglobals();
         /// &lt;summary&gt;
         /// used to set/get int globals
         /// &lt;/summary&gt;
-        public miglobals iGlobal
+        public static miglobals iGlobal
             {
             get { return _miglobals; }
             }
@@ -274,11 +274,11 @@ namespace WinterLeaf.Engine.Classes.Interopt
                 set { m_ts.SetVar(key, value); }
                 }
             }
-        private readonly mbglobals _mbglobals = new mbglobals();
+        private static readonly mbglobals _mbglobals = new mbglobals();
         /// &lt;summary&gt;
         /// used to set/get bool globals
         /// &lt;/summary&gt;
-        public mbglobals bGlobal
+        public static mbglobals bGlobal
             {
             get { return _mbglobals; }
             }
@@ -300,11 +300,11 @@ namespace WinterLeaf.Engine.Classes.Interopt
                 set { m_ts.SetVar(key, value); }
                 }
             }
-        private readonly mfglobals _mfglobals = new mfglobals();
+        private static readonly mfglobals _mfglobals = new mfglobals();
         /// &lt;summary&gt;
         /// used to set/get bool globals
         /// &lt;/summary&gt;
-        public mfglobals fGlobal
+        public static mfglobals fGlobal
             {
             get { return _mfglobals; }
             }
@@ -326,11 +326,11 @@ namespace WinterLeaf.Engine.Classes.Interopt
                 set { m_ts.SetVar(key, value); }
                 }
             }
-        public readonly mdglobals _mdglobals = new mdglobals();
+        public static readonly mdglobals _mdglobals = new mdglobals();
         /// &lt;summary&gt;
         /// used to set/get bool globals
         /// &lt;/summary&gt;
-        public mdglobals dGlobal
+        public static mdglobals dGlobal
             {
             get { return _mdglobals; }
             }
@@ -344,17 +344,17 @@ namespace WinterLeaf.Engine.Classes.Interopt
         /// &lt;summary&gt;
         /// A property exposing Custom dnTorque Console Functions.
         /// &lt;/summary&gt;
-        private ConsoleObject _mConsoleobject;
+        private static ConsoleObject _mConsoleobject;
 
         /// &lt;summary&gt;
         /// A property exposing Custom Math console functions.
         /// &lt;/summary&gt;
-        private tMath _mMathobject;
+        private static tMath _mMathobject;
 
         /// &lt;summary&gt;
         /// A property exposing Custom dnTorque Console Functions.
         /// &lt;/summary&gt;
-        public ConsoleObject console
+        public static ConsoleObject console
             {
             get { return _mConsoleobject; }
             }
@@ -362,7 +362,7 @@ namespace WinterLeaf.Engine.Classes.Interopt
         /// &lt;summary&gt;
         /// A property exposing Custom Math console functions.
         /// &lt;/summary&gt;
-        public tMath math
+        public static tMath math
             {
             get { return _mMathobject; }
             }
@@ -371,7 +371,7 @@ namespace WinterLeaf.Engine.Classes.Interopt
         /// &lt;summary&gt;
         /// A list of all the Connection Object ID's active in Torque at the moment of request.
         /// &lt;/summary&gt;
-        public List&lt;UInt32&gt; ClientGroup
+        public static List&lt;UInt32&gt; ClientGroup
             {
             get
                 {
@@ -388,7 +388,7 @@ namespace WinterLeaf.Engine.Classes.Interopt
         /// The count of connection ID's
         /// &lt;/summary&gt;
         /// &lt;returns&gt;&lt;/returns&gt;
-        public UInt32 ClientGroup__GetCount()
+        public static UInt32 ClientGroup__GetCount()
             {
             return m_ts.ClientGroupGetCount();
             }
@@ -398,7 +398,7 @@ namespace WinterLeaf.Engine.Classes.Interopt
         /// &lt;/summary&gt;
         /// &lt;param name="index"&gt;&lt;/param&gt;
         /// &lt;returns&gt;&lt;/returns&gt;
-        public uint ClientGroup__GetItem(UInt32 index)
+        public static uint ClientGroup__GetItem(UInt32 index)
             {
             return m_ts.ClientGroupGetObject(index);
             }
@@ -407,7 +407,7 @@ namespace WinterLeaf.Engine.Classes.Interopt
         /// Removes the tagged string from Torque.
         /// &lt;/summary&gt;
         /// &lt;param name="tag"&gt;&lt;/param&gt;
-        public void removeTaggedString(string tag)
+        public static void removeTaggedString(string tag)
             {
             m_ts._removeTaggedString(tag);
             }
@@ -417,9 +417,6 @@ namespace WinterLeaf.Engine.Classes.Interopt
         /// &lt;/summary&gt;
         public class ConsoleObject
             {
-            private Omni m_ts;
-
-          
             /// &lt;summary&gt;
             /// 
             /// &lt;/summary&gt;
@@ -607,16 +604,6 @@ namespace WinterLeaf.Engine.Classes.Interopt
             public string Call(string simobject, string function)
                 {
                 return m_ts.SimObjectCall(simobject, function, new string[] { });
-                }
-
-
-            /// &lt;summary&gt;
-            /// Constructor.
-            /// &lt;/summary&gt;
-            /// &lt;param name="ts"&gt;&lt;/param&gt;
-            public ConsoleObject(ref Omni ts)
-                {
-                m_ts = ts;
                 }
 
             /// &lt;summary&gt;
@@ -1337,18 +1324,6 @@ namespace WinterLeaf.Engine.Classes.Interopt
             /// &lt;summary&gt;
             /// 
             /// &lt;/summary&gt;
-            private Omni m_ts;
-            /// &lt;summary&gt;
-            /// 
-            /// &lt;/summary&gt;
-            /// &lt;param name="ts"&gt;&lt;/param&gt;
-            public tMath(ref Omni ts)
-                {
-                m_ts = ts;
-                }
-            /// &lt;summary&gt;
-            /// 
-            /// &lt;/summary&gt;
             public static double M_2PI_F
                 {
                 get { return 3.1415926535897932384626433f * 2.0f; }
@@ -1413,8 +1388,8 @@ namespace WinterLeaf.Engine.Classes.Interopt
 		public void SetUp(ref Omni c)
             {
             m_ts = c;
-            _mConsoleobject = new ConsoleObject(ref c);
-            _mMathobject = new tMath(ref c);
+            _mConsoleobject = new ConsoleObject();
+            _mMathobject = new tMath();
             ###INSERTAUTOGEN###
         }
     }</value>

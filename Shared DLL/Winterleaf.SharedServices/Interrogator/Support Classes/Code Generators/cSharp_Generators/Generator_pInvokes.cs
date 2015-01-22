@@ -258,7 +258,7 @@ namespace Winterleaf.SharedServices.Interrogator.cSharp_Generators
                 {
                 string s = ss == "" ? "Util" : ss;
 
-                fcalls += "\t_m" + s + " = new " + s + "Object(ref c);\r\n";
+                fcalls += "\t_m" + s + " = new " + s + "Object();\r\n";
                 }
             fcalls += "}\r\n";
             //private readonly ConsoleObject _mConsoleobject;
@@ -269,13 +269,13 @@ namespace Winterleaf.SharedServices.Interrogator.cSharp_Generators
                 mLogger.onProgressSubChange(pos/total, ss);
 
                 string s = ss == "" ? "Util" : ss;
-                fcalls += "public " + s + "Object _m" + s + ";\r\n";
+                fcalls += "private static " + s + "Object _m" + s + ";\r\n";
                 fcalls += @"        /// <summary>
         /// 
         /// </summary>
 ";
                 //if (s.ToLower() == "util")
-                fcalls += "public ";
+                fcalls += "public static ";
                 //else
                 //fcalls += "internal ";
 
@@ -294,13 +294,6 @@ namespace Winterleaf.SharedServices.Interrogator.cSharp_Generators
 
                 fcalls += " public class " + s + "Object\r\n";
                 fcalls += "{\r\n";
-                fcalls += "private Omni m_ts;\r\n";
-                fcalls += @"     /// <summary>
-     /// 
-     /// </summary>
-     /// <param name=""ts""></param> 
-";
-                fcalls += "public " + s + "Object(ref Omni ts){m_ts = ts;}\r\n";
                 foreach (Externdata s1 in un1)
                     fcalls += WriteCallWrapper(s1);
                 fcalls += "}\r\n";
